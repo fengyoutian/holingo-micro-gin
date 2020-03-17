@@ -1,0 +1,9 @@
+server:
+  name: "micro-server"
+  version: "latest"
+  addr: "0.0.0.0:9000"
+
+client:
+  name: "micro-server"
+  version: "latest"
+  dial: "0.0.0.0:9001"

@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package holingo.v1;
+
+service Holingo {
+  rpc Ping (.google.protobuf.Empty) returns (.google.protobuf.Empty) {
+
+  };
+  rpc SayHello (HelloReq) returns (HelloResp) {
+
+  };
+}
+
+message HelloReq {
+  string name = 1;
+}
+
+message HelloResp {
+  string Content = 1;
+}
