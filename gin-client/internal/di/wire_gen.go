@@ -14,32 +14,37 @@ import (
 // Injectors from wire.go:
 
 func InitApp() (*App, func(), error) {
-	holingoService, err := dao.NewClient()
+	client, cleanup, err := dao.NewClient()
 	if err != nil {
 		return nil, nil, err
 	}
-	daoDao, cleanup, err := dao.New(holingoService)
+	daoDao, cleanup2, err := dao.New(client)
 	if err != nil {
+		cleanup()
 		return nil, nil, err
 	}
-	serviceService, cleanup2, err := service.New(daoDao)
+	serviceService, cleanup3, err := service.New(daoDao)
 	if err != nil {
+		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
 	server, err := http.New(serviceService)
 	if err != nil {
+		cleanup3()
 		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
-	app, cleanup3, err := NewApp(serviceService, server)
+	app, cleanup4, err := NewApp(serviceService, server)
 	if err != nil {
+		cleanup3()
 		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
 	return app, func() {
+		cleanup4()
 		cleanup3()
 		cleanup2()
 		cleanup()
