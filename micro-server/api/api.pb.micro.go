@@ -37,6 +37,8 @@ var _ server.Option
 type HolingoService interface {
 	Ping(ctx context.Context, in *empty.Empty, opts ...client.CallOption) (*empty.Empty, error)
 	SayHello(ctx context.Context, in *HelloReq, opts ...client.CallOption) (*HelloResp, error)
+	AddArticle(ctx context.Context, in *Article, opts ...client.CallOption) (*Article, error)
+	SearchArticle(ctx context.Context, in *Article, opts ...client.CallOption) (*Article, error)
 }
 
 type holingoService struct {
@@ -71,17 +73,41 @@ func (c *holingoService) SayHello(ctx context.Context, in *HelloReq, opts ...cli
 	return out, nil
 }
 
+func (c *holingoService) AddArticle(ctx context.Context, in *Article, opts ...client.CallOption) (*Article, error) {
+	req := c.c.NewRequest(c.name, "Holingo.AddArticle", in)
+	out := new(Article)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *holingoService) SearchArticle(ctx context.Context, in *Article, opts ...client.CallOption) (*Article, error) {
+	req := c.c.NewRequest(c.name, "Holingo.SearchArticle", in)
+	out := new(Article)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Holingo service
 
 type HolingoHandler interface {
 	Ping(context.Context, *empty.Empty, *empty.Empty) error
 	SayHello(context.Context, *HelloReq, *HelloResp) error
+	AddArticle(context.Context, *Article, *Article) error
+	SearchArticle(context.Context, *Article, *Article) error
 }
 
 func RegisterHolingoHandler(s server.Server, hdlr HolingoHandler, opts ...server.HandlerOption) error {
 	type holingo interface {
 		Ping(ctx context.Context, in *empty.Empty, out *empty.Empty) error
 		SayHello(ctx context.Context, in *HelloReq, out *HelloResp) error
+		AddArticle(ctx context.Context, in *Article, out *Article) error
+		SearchArticle(ctx context.Context, in *Article, out *Article) error
 	}
 	type Holingo struct {
 		holingo
@@ -100,4 +126,12 @@ func (h *holingoHandler) Ping(ctx context.Context, in *empty.Empty, out *empty.E
 
 func (h *holingoHandler) SayHello(ctx context.Context, in *HelloReq, out *HelloResp) error {
 	return h.HolingoHandler.SayHello(ctx, in, out)
+}
+
+func (h *holingoHandler) AddArticle(ctx context.Context, in *Article, out *Article) error {
+	return h.HolingoHandler.AddArticle(ctx, in, out)
+}
+
+func (h *holingoHandler) SearchArticle(ctx context.Context, in *Article, out *Article) error {
+	return h.HolingoHandler.SearchArticle(ctx, in, out)
 }

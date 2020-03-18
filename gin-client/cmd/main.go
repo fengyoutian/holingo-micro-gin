@@ -31,7 +31,7 @@ func main() {
 		switch s {
 		case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
 			closeFunc()
-			logrus.Info("micro-server exit")
+			logrus.Info("gin-client exit")
 			time.Sleep(time.Second)
 			return
 		case syscall.SIGHUP:

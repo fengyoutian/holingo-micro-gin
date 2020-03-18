@@ -6,6 +6,7 @@
 package di
 
 import (
+	"github.com/fengyoutian/holingo-micro-gin/micro-server/internal/dao"
 	"github.com/fengyoutian/holingo-micro-gin/micro-server/internal/server/grpc"
 	"github.com/fengyoutian/holingo-micro-gin/micro-server/internal/service"
 )
@@ -13,21 +14,38 @@ import (
 // Injectors from wire.go:
 
 func InitApp() (*App, func(), error) {
-	serviceService, cleanup, err := service.New()
+	db, cleanup, err := dao.NewDB()
 	if err != nil {
+		return nil, nil, err
+	}
+	daoDao, cleanup2, err := dao.New(db)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	serviceService, cleanup3, err := service.New(daoDao)
+	if err != nil {
+		cleanup2()
+		cleanup()
 		return nil, nil, err
 	}
 	microService, err := grpc.New(serviceService)
 	if err != nil {
+		cleanup3()
+		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
-	app, cleanup2, err := NewApp(serviceService, microService)
+	app, cleanup4, err := NewApp(serviceService, microService)
 	if err != nil {
+		cleanup3()
+		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
 	return app, func() {
+		cleanup4()
+		cleanup3()
 		cleanup2()
 		cleanup()
 	}, nil

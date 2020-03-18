@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/fengyoutian/holingo-micro-gin/micro-server/internal/service"
 
 	"github.com/micro/go-micro/v2"
@@ -21,6 +23,9 @@ func NewApp(svc *service.Service, g *micro.Service) (app *App, closeFunc func(),
 	}
 	closeFunc = func() {
 		_, cancel := context.WithTimeout(context.Background(), 35*time.Second)
+		if err := (*g).Server().Stop(); err != nil {
+			logrus.Errorf("micro.Service.Stop error(%v)", err)
+		}
 		cancel()
 	}
 	return

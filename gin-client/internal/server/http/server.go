@@ -3,7 +3,10 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
+
+	"github.com/fengyoutian/holingo-micro-gin/pkg/config"
 
 	holingo "github.com/fengyoutian/holingo-micro-gin/micro-server/api"
 	"github.com/golang/protobuf/ptypes/empty"
@@ -17,20 +20,11 @@ import (
 	"github.com/fengyoutian/holingo-util/file"
 )
 
-type ServerConfig struct {
-	Network      string
-	Addr         string
-	Timeout      time.Duration
-	ReadTimeout  time.Duration `yaml:"readTimeout"`
-	WriteTimeout time.Duration `yaml:"writeTimeout"`
-	IdleTimeout  time.Duration `yaml:"idleTimeout"`
-}
-
 var svc holingo.HolingoHandler
 
 func New(s holingo.HolingoHandler) (h *http.Server, err error) {
 	var (
-		cfg ServerConfig
+		cfg config.HttpConfig
 		y   *file.YAML
 	)
 	if y, err = file.Load(tool.Config.GetConfigPath("http.yaml")); err != nil {
@@ -39,7 +33,7 @@ func New(s holingo.HolingoHandler) (h *http.Server, err error) {
 	if err = y.Unmarshal("server", &cfg); err != nil {
 		return
 	}
-	logrus.Infof("cfg: %s\n ", cfg)
+	logrus.Infof("gin: %s\n ", cfg)
 	svc = s
 
 	engine := gin.Default()
@@ -61,6 +55,11 @@ func registerRouter(e *gin.Engine) {
 	{
 		v1.GET("/hello/:name", sayHello)
 	}
+	article := e.Group("/article")
+	{
+		article.POST("/add", addArticle)
+		article.GET("/search/:id", searchArticle)
+	}
 }
 
 func ping(c *gin.Context) {
@@ -75,25 +74,58 @@ func ping(c *gin.Context) {
 func sayHello(c *gin.Context) {
 	name := c.Param("name")
 
+	var reply holingo.HelloResp
 	err := svc.SayHello(c, &holingo.HelloReq{
 		Name:                 name,
 		XXX_NoUnkeyedLiteral: struct{}{},
 		XXX_unrecognized:     nil,
 		XXX_sizecache:        0,
-	}, &holingo.HelloResp{})
+	}, &reply)
+
+	render(c, reply.Content, err)
+}
+
+func addArticle(c *gin.Context) {
+	req := &holingo.Article{
+		Author:  c.PostForm("author"),
+		Title:   c.PostForm("title"),
+		Content: c.PostForm("content"),
+	}
+
+	var reply holingo.Article
+	logrus.Infof("server.addArticle req: %v", req)
+	err := svc.AddArticle(c, req, &reply)
+	render(c, reply, err)
+}
+
+func searchArticle(c *gin.Context) {
+	var reply holingo.Article
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err == nil {
+		logrus.Infof("server.searchArticle id: %d", id)
+		err = svc.SearchArticle(c, &holingo.Article{Id: id}, &reply)
+	}
+
+	render(c, reply, err)
+}
+
+func render(c *gin.Context, data interface{}, err error) {
+	var status int
+	result := gin.H{
+		"timestamp": time.Now().UnixNano() / 1e6,
+	}
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"code":      -1,
-			"msg":       "error",
-			"timestamp": time.Now().UnixNano() / 1e6,
-		})
-		return
+		status = http.StatusInternalServerError
+		result["code"] = -1
+		result["msg"] = fmt.Sprint(err.Error())
+	} else {
+		status = http.StatusOK
+		result["code"] = 0
+		result["msg"] = "ok"
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"code":      0,
-		"msg":       "ok",
-		"data":      fmt.Sprintf("Hello %s!", name),
-		"timestamp": time.Now().UnixNano() / 1e6,
-	})
+	if data != nil {
+		result["data"] = data
+	}
+	c.JSON(status, result)
 }

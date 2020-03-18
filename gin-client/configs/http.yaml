@@ -1,6 +1,6 @@
 server:
   addr: "0.0.0.0:8000"
   timeout: 15
-  readTimeout: 15
-  writeTimeout: 15
-  idleTimeout: 15
+  read_timeout: 15
+  write_timeout: 15
+  idle_timeout: 15

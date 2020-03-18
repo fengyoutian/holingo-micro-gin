@@ -1,15 +1,20 @@
 syntax = "proto3";
 
+//import "github.com/micro/go-micro/v2/api/proto/api.proto";
 import "google/protobuf/empty.proto";
+
 
 package holingo.v1;
 
 service Holingo {
   rpc Ping (.google.protobuf.Empty) returns (.google.protobuf.Empty) {
-
   };
   rpc SayHello (HelloReq) returns (HelloResp) {
+  };
 
+  rpc AddArticle (Article) returns (Article){
+  };
+  rpc SearchArticle (Article) returns (Article){
   };
 }
 
@@ -19,4 +24,13 @@ message HelloReq {
 
 message HelloResp {
   string Content = 1;
+}
+
+message Article {
+  uint64 id = 1;
+  string author = 2;
+  string title = 3;
+  string content = 4;
+  string modify_time = 5;
+  string create_time = 6;
 }

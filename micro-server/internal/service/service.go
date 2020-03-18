@@ -3,6 +3,10 @@ package service
 import (
 	"context"
 
+	"github.com/fengyoutian/holingo-micro-gin/micro-server/internal/model"
+
+	"github.com/fengyoutian/holingo-micro-gin/micro-server/internal/dao"
+
 	"github.com/google/wire"
 
 	holingo "github.com/fengyoutian/holingo-micro-gin/micro-server/api"
@@ -15,12 +19,20 @@ var Provider = wire.NewSet(New, wire.Bind(new(holingo.HolingoHandler), new(*Serv
 
 // Service service.
 type Service struct {
+	dao dao.Dao
 }
 
 // New new a service and return.
-func New() (s *Service, cf func(), err error) {
-	s = &Service{}
+func New(d dao.Dao) (s *Service, cf func(), err error) {
+	s = &Service{
+		dao: d,
+	}
+	cf = s.Close
 	return
+}
+
+// Close close the resource.
+func (s *Service) Close() {
 }
 
 // Ping ping the resource.
@@ -32,12 +44,42 @@ func (s *Service) Ping(ctx context.Context, e *empty.Empty, r *empty.Empty) erro
 
 // SayHello grpc demo func.
 func (s *Service) SayHello(ctx context.Context, req *holingo.HelloReq, reply *holingo.HelloResp) (err error) {
-	reply = &holingo.HelloResp{
-		Content:              "hello word!",
-		XXX_NoUnkeyedLiteral: struct{}{},
-		XXX_unrecognized:     nil,
-		XXX_sizecache:        0,
-	}
+	reply.Content = "hello word"
 	logrus.Infof("grpc.SayHello(%s) reply(%s) \n", req.Name, reply.Content)
 	return
+}
+
+// AddArticle gorm demo func
+func (s *Service) AddArticle(ctx context.Context, req *holingo.Article, reply *holingo.Article) (err error) {
+	article, err := s.dao.AddArticle(ctx, &model.Article{
+		Author:  req.Author,
+		Title:   req.Title,
+		Content: req.Content,
+	})
+	if err != nil {
+		return
+	}
+	articleHandle(reply, article)
+	logrus.Infof("service.AddArticle(%s) reply(%v)", req.Title, reply)
+	return
+}
+
+// SearchArticle gorm demo func
+func (s *Service) SearchArticle(ctx context.Context, req *holingo.Article, reply *holingo.Article) (err error) {
+	article, err := s.dao.SearchArticle(ctx, &model.Article{ID: req.Id})
+	if err != nil {
+		return
+	}
+	articleHandle(reply, article)
+	logrus.Infof("service.SearchArticle(%d) reply(%v)", req.Id, reply)
+	return
+}
+
+func articleHandle(reply *holingo.Article, article *model.Article) {
+	reply.Id = article.ID
+	reply.Author = article.Author
+	reply.Title = article.Title
+	reply.Content = article.Content
+	reply.ModifyTime = article.ModifyTime
+	reply.CreateTime = article.CreateTime
 }
