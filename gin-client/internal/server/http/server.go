@@ -33,7 +33,7 @@ func New(s holingo.HolingoHandler) (h *http.Server, err error) {
 		cfg ServerConfig
 		y   *file.YAML
 	)
-	if y, err = file.Load(tool.Cofig.GetConfigPath("http.yaml")); err != nil {
+	if y, err = file.Load(tool.Config.GetConfigPath("http.yaml")); err != nil {
 		return
 	}
 	if err = y.Unmarshal("server", &cfg); err != nil {

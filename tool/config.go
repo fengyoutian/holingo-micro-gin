@@ -14,7 +14,7 @@ type _Config struct {
 	configDir string
 }
 
-var Cofig _Config
+var Config _Config
 
 func init() {
 	Config := new(_Config)

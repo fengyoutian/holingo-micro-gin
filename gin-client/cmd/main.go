@@ -16,7 +16,7 @@ import (
 
 func main() {
 	flag.Parse()
-	tool.Cofig.Init()
+	tool.Config.Init()
 	logrus.Info("gin-client start")
 
 	_, closeFunc, err := di.InitApp()

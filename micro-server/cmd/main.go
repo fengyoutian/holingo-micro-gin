@@ -7,14 +7,15 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/fengyoutian/holingo-micro-gin/micro-server/internal/di"
 	"github.com/fengyoutian/holingo-micro-gin/tool"
+
+	"github.com/fengyoutian/holingo-micro-gin/micro-server/internal/di"
 	"github.com/sirupsen/logrus"
 )
 
 func main() {
 	flag.Parse()
-	tool.Cofig.Init()
+	tool.Config.Init()
 	logrus.Info("micro-server start")
 
 	_, closeFunc, err := di.InitApp()

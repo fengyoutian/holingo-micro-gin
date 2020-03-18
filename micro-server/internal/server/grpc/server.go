@@ -21,7 +21,7 @@ func New(service *service.Service) (s *micro.Service, err error) {
 		cfg ServerConfig
 		y   *file.YAML
 	)
-	if y, err = file.Load(tool.Cofig.GetConfigPath("grpc.yaml")); err != nil {
+	if y, err = file.Load(tool.Config.GetConfigPath("grpc.yaml")); err != nil {
 		return
 	}
 	if err = y.Unmarshal("server", &cfg); err != nil {
