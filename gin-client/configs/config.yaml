@@ -1,0 +1,21 @@
+hosts:
+  server:
+    name: "micro-server"
+    version: "latest"
+    addr: "0.0.0.0:9000"
+
+  client:
+    name: "micro-server"
+    version: "latest"
+    addr: "0.0.0.0:9000"
+
+  etcd:
+    addrs: ["0.0.0.0:2379"]
+    timeout: 3
+
+  http:
+    addr: "0.0.0.0:8000"
+    timeout: 15
+    read_timeout: 15
+    write_timeout: 15
+    idle_timeout: 15

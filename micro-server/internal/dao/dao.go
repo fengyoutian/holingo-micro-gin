@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/micro/go-micro/v2/logger"
+
 	"github.com/fengyoutian/holingo-micro-gin/micro-server/internal/model"
-	"github.com/sirupsen/logrus"
 
 	"github.com/google/wire"
 	"github.com/jinzhu/gorm"
@@ -65,7 +66,7 @@ func (d *dao) AddArticle(ctx context.Context, req *model.Article) (reply *model.
 func (d *dao) SearchArticle(ctx context.Context, req *model.Article) (reply *model.Article, err error) {
 	err = d.db.Raw(fmt.Sprintf("SELECT * FROM %s WHERE id = ?", req.TableName()), req.ID).Scan(req).Error
 	if err != nil {
-		logrus.Errorf("dao.SearchArticle Error(%v)", err)
+		logger.Errorf("dao.SearchArticle Error(%v)", err)
 	}
 	return req, err
 }

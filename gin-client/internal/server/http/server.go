@@ -6,34 +6,28 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/fengyoutian/holingo-micro-gin/pkg/config"
+	"github.com/micro/go-micro/v2/config"
+	"github.com/micro/go-micro/v2/logger"
+
+	myConfig "github.com/fengyoutian/holingo-micro-gin/pkg/config"
 
 	holingo "github.com/fengyoutian/holingo-micro-gin/micro-server/api"
 	"github.com/golang/protobuf/ptypes/empty"
 
-	"github.com/fengyoutian/holingo-micro-gin/tool"
-
-	"github.com/sirupsen/logrus"
-
 	"github.com/gin-gonic/gin"
-
-	"github.com/fengyoutian/holingo-util/file"
 )
 
 var svc holingo.HolingoHandler
 
 func New(s holingo.HolingoHandler) (h *http.Server, err error) {
 	var (
-		cfg config.HttpConfig
-		y   *file.YAML
+		cfg myConfig.HttpConfig
 	)
-	if y, err = file.Load(tool.Config.GetConfigPath("http.yaml")); err != nil {
+	// config load on main.go
+	if err = config.Get("hosts", "http").Scan(&cfg); err != nil {
 		return
 	}
-	if err = y.Unmarshal("server", &cfg); err != nil {
-		return
-	}
-	logrus.Infof("gin: %s\n ", cfg)
+	logger.Infof("gin: %s\n ", cfg)
 	svc = s
 
 	engine := gin.Default()
@@ -64,7 +58,7 @@ func registerRouter(e *gin.Engine) {
 
 func ping(c *gin.Context) {
 	if err := svc.Ping(c, nil, &empty.Empty{}); err != nil {
-		logrus.Errorf("ping error(%v)", err)
+		logger.Errorf("ping error(%v)", err)
 		c.AbortWithStatus(http.StatusServiceUnavailable)
 		return
 	}
@@ -93,7 +87,7 @@ func addArticle(c *gin.Context) {
 	}
 
 	var reply holingo.Article
-	logrus.Infof("server.addArticle req: %v", req)
+	logger.Infof("server.addArticle req: %v", req)
 	err := svc.AddArticle(c, req, &reply)
 	render(c, reply, err)
 }
@@ -102,7 +96,7 @@ func searchArticle(c *gin.Context) {
 	var reply holingo.Article
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err == nil {
-		logrus.Infof("server.searchArticle id: %d", id)
+		logger.Infof("server.searchArticle id: %d", id)
 		err = svc.SearchArticle(c, &holingo.Article{Id: id}, &reply)
 	}
 

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/sirupsen/logrus"
+	"github.com/micro/go-micro/v2/logger"
 
 	"github.com/fengyoutian/holingo-micro-gin/gin-client/internal/service"
 )
@@ -23,7 +23,7 @@ func NewApp(svc *service.Service, h *http.Server) (app *App, closeFunc func(), e
 	closeFunc = func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 35*time.Second)
 		if err := h.Shutdown(ctx); err != nil {
-			logrus.Errorf("httpSrv.Shutdown error(%v)", err)
+			logger.Errorf("httpSrv.Shutdown error(%v)", err)
 		}
 		cancel()
 	}

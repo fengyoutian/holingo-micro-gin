@@ -7,16 +7,21 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/fengyoutian/holingo-micro-gin/tool"
+	"github.com/micro/go-micro/v2/config"
+	"github.com/micro/go-micro/v2/config/source/file"
+
+	"github.com/micro/go-micro/v2/logger"
 
 	"github.com/fengyoutian/holingo-micro-gin/micro-server/internal/di"
-	"github.com/sirupsen/logrus"
 )
 
 func main() {
 	flag.Parse()
-	tool.Config.Init()
-	logrus.Info("micro-server start")
+	// load config file
+	if err := config.Load(file.NewSource(file.WithPath("../configs/config.yaml"))); err != nil {
+		return
+	}
+	logger.Info("micro-server start")
 
 	_, closeFunc, err := di.InitApp()
 	if err != nil {
@@ -26,11 +31,11 @@ func main() {
 	signal.Notify(c, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
 	for {
 		s := <-c
-		logrus.Info("get a signal %s", s.String())
+		logger.Info("get a signal %s", s.String())
 		switch s {
 		case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
 			closeFunc()
-			logrus.Info("micro-server exit")
+			logger.Info("micro-server exit")
 			time.Sleep(time.Second)
 			return
 		case syscall.SIGHUP:

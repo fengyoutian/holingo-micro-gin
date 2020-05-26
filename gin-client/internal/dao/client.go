@@ -3,16 +3,17 @@ package dao
 import (
 	"time"
 
+	"github.com/micro/go-micro/v2/config"
+
+	"github.com/micro/go-micro/v2/logger"
+
 	"github.com/micro/go-micro/v2/registry"
 
-	"github.com/fengyoutian/holingo-micro-gin/pkg/config"
+	myConfig "github.com/fengyoutian/holingo-micro-gin/pkg/config"
 
 	holingo "github.com/fengyoutian/holingo-micro-gin/micro-server/api"
-	"github.com/fengyoutian/holingo-micro-gin/tool"
-	"github.com/fengyoutian/holingo-util/file"
 	"github.com/micro/go-micro/v2"
 	"github.com/micro/go-micro/v2/registry/etcd"
-	"github.com/sirupsen/logrus"
 )
 
 // dao dao.
@@ -25,20 +26,17 @@ var engine micro.Service
 // NewClient new grpc client
 func NewClient() (c *client, cf func(), err error) {
 	var (
-		clientCfg config.GrpcConfig
-		etdcCfg   config.EtcdConfig
-		y         *file.YAML
+		clientCfg myConfig.GrpcConfig
+		etdcCfg   myConfig.EtcdConfig
 	)
-	if y, err = file.Load(tool.Config.GetConfigPath("grpc.yaml")); err != nil {
+	// config load on main.go
+	if err = config.Get("hosts", "client").Scan(&clientCfg); err != nil {
 		return
 	}
-	if err = y.Unmarshal("client", &clientCfg); err != nil {
+	if err = config.Get("hosts", "etcd").Scan(&etdcCfg); err != nil {
 		return
 	}
-	if err = y.Unmarshal("etcd", &etdcCfg); err != nil {
-		return
-	}
-	logrus.Infof("client: %v, etcd: %v \n ", clientCfg, etdcCfg)
+	logger.Infof("client: %v, etcd: %v \n ", clientCfg, etdcCfg)
 
 	// Register EtcdConfig
 	registry := etcd.NewRegistry(func(opt *registry.Options) {
@@ -65,6 +63,6 @@ func NewClient() (c *client, cf func(), err error) {
 // Close close the resource.
 func (c *client) Close() {
 	if err := engine.Server().Stop(); err != nil {
-		logrus.Errorf("client.Close.Server Error(%v)", err)
+		logger.Errorf("client.Close.Server Error(%v)", err)
 	}
 }

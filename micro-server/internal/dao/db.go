@@ -3,32 +3,30 @@ package dao
 import (
 	"time"
 
+	"github.com/micro/go-micro/v2/config"
+
+	"github.com/micro/go-micro/v2/logger"
+
 	"github.com/fengyoutian/holingo-micro-gin/micro-server/internal/model"
 
-	"github.com/fengyoutian/holingo-micro-gin/pkg/config"
-	"github.com/fengyoutian/holingo-micro-gin/tool"
-	"github.com/fengyoutian/holingo-util/file"
+	myConfig "github.com/fengyoutian/holingo-micro-gin/pkg/config"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-	"github.com/sirupsen/logrus"
 )
 
 func NewDB() (db *gorm.DB, cf func(), err error) {
 	var (
-		cfg config.DBConfig
-		y   *file.YAML
+		cfg myConfig.DBConfig
 	)
-	if y, err = file.Load(tool.Config.GetConfigPath("db.yaml")); err != nil {
+	// config load on main.go
+	if err = config.Get("hosts", "database").Scan(&cfg); err != nil {
 		return
 	}
-	if err = y.Unmarshal("client", &cfg); err != nil {
-		return
-	}
-	logrus.Infof("db: %v\n ", cfg)
+	logger.Infof("db: %v\n ", cfg)
 
 	db, err = gorm.Open(cfg.Dialect, cfg.DSN)
 	if err != nil {
-		logrus.Errorf("db.Open Error(%v)", err)
+		logger.Errorf("db.Open Error(%v)", err)
 	}
 	db.DB().SetMaxOpenConns(cfg.MaxOpenConns)
 	db.DB().SetMaxIdleConns(cfg.MaxIdleConns)

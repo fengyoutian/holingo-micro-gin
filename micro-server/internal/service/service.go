@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 
+	"github.com/micro/go-micro/v2/logger"
+
 	"github.com/fengyoutian/holingo-micro-gin/micro-server/internal/model"
 
 	"github.com/fengyoutian/holingo-micro-gin/micro-server/internal/dao"
@@ -10,8 +12,6 @@ import (
 	"github.com/google/wire"
 
 	holingo "github.com/fengyoutian/holingo-micro-gin/micro-server/api"
-	"github.com/sirupsen/logrus"
-
 	"github.com/golang/protobuf/ptypes/empty"
 )
 
@@ -38,14 +38,14 @@ func (s *Service) Close() {
 // Ping ping the resource.
 func (s *Service) Ping(ctx context.Context, e *empty.Empty, r *empty.Empty) error {
 	r = new(empty.Empty)
-	logrus.Info("grpc.Ping() pong. \n")
+	logger.Info("grpc.Ping() pong. \n")
 	return nil
 }
 
 // SayHello grpc demo func.
 func (s *Service) SayHello(ctx context.Context, req *holingo.HelloReq, reply *holingo.HelloResp) (err error) {
 	reply.Content = "hello word"
-	logrus.Infof("grpc.SayHello(%s) reply(%s) \n", req.Name, reply.Content)
+	logger.Infof("grpc.SayHello(%s) reply(%s) \n", req.Name, reply.Content)
 	return
 }
 
@@ -60,7 +60,7 @@ func (s *Service) AddArticle(ctx context.Context, req *holingo.Article, reply *h
 		return
 	}
 	articleHandle(reply, article)
-	logrus.Infof("service.AddArticle(%s) reply(%v)", req.Title, reply)
+	logger.Infof("service.AddArticle(%s) reply(%v)", req.Title, reply)
 	return
 }
 
@@ -71,7 +71,7 @@ func (s *Service) SearchArticle(ctx context.Context, req *holingo.Article, reply
 		return
 	}
 	articleHandle(reply, article)
-	logrus.Infof("service.SearchArticle(%d) reply(%v)", req.Id, reply)
+	logger.Infof("service.SearchArticle(%d) reply(%v)", req.Id, reply)
 	return
 }
 
